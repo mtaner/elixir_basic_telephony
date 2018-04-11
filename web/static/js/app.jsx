@@ -19,10 +19,7 @@ export default class App extends React.Component {
 
   componentDidMount () {
     TwilioDevice.on('ready', () => {
-      this.setState({
-        ready: true,
-        conference_key: Math.floor(Date.now() / 1000)
-      })
+      this.setState({ ready: true })
     })
 
     TwilioDevice.on('connected', () => {
@@ -43,11 +40,13 @@ export default class App extends React.Component {
   }
 
   dial (phoneNumber) {
+    let conferenceKey = Math.floor(Date.now() / 1000)
     sendCommand('dial', {
       username: this.state.username,
       phone_number: phoneNumber,
-      conference_key: this.state.conference_key
+      conference_key: conferenceKey
     })
+    this.setState({conference_key: conferenceKey})
   }
 
   hangup () {

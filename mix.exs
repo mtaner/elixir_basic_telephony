@@ -6,9 +6,9 @@ defmodule TwilioSandbox.Mixfile do
       app: :sandbox_twilio,
       version: "0.0.1",
       elixir: "~> 1.4",
-      elixirc_paths: elixirc_paths(Mix.env),
-      compilers: [:phoenix, :gettext] ++ Mix.compilers,
-      start_permanent: Mix.env == :prod,
+      elixirc_paths: elixirc_paths(Mix.env()),
+      compilers: [:phoenix, :gettext] ++ Mix.compilers(),
+      start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps()
     ]
@@ -26,7 +26,7 @@ defmodule TwilioSandbox.Mixfile do
 
   # Specifies which paths to compile per environment.
   defp elixirc_paths(:test), do: ["lib", "web", "test/support"]
-  defp elixirc_paths(_),     do: ["lib", "web"]
+  defp elixirc_paths(_), do: ["lib", "web"]
 
   # Specifies your project dependencies.
   #
@@ -44,7 +44,8 @@ defmodule TwilioSandbox.Mixfile do
       {:ex_twilio, "~> 0.5.1"},
       {:poison, "~> 3.1"},
       {:commanded, "~> 0.15"},
-      {:commanded_eventstore_adapter, "~> 0.3"}
+      {:commanded_eventstore_adapter, "~> 0.3"},
+      {:commanded_swarm_registry, "~> 0.1"}
     ]
   end
 
@@ -58,7 +59,7 @@ defmodule TwilioSandbox.Mixfile do
     [
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      "test": ["ecto.create --quiet", "ecto.migrate", "test"]
+      test: ["ecto.create --quiet", "ecto.migrate", "test"]
     ]
   end
 end

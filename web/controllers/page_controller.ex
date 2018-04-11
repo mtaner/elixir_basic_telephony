@@ -2,16 +2,20 @@ defmodule TwilioSandbox.PageController do
   use TwilioSandbox.Web, :controller
 
   def index(conn, _params) do
-    render conn, "index.html"
+    render(conn, "index.html")
   end
 
   def status_callback(conn, params) do
     case params["CallStatus"] do
-      "in-progress" ->
-          ConferenceRouter.dispatch(%UpdateLegStatus{call_sid: params["CallSid"], conference_key: params["conference_uuid"]})
       "completed" ->
-          ConferenceRouter.dispatch(%EndConference{conference_key: params["conference_uuid"]})
-      _ -> IO.puts params["CallStatus"]
+        ConferenceRouter.dispatch(%EndConference{conference_key: params["conference_uuid"]})
+
+      _ ->
+        ConferenceRouter.dispatch(%UpdateLegStatus{
+          call_sid: params["CallSid"],
+          conference_key: params["conference_uuid"],
+          status: params["CallStatus"]
+        })
     end
 
     json(conn, %{status: 200})

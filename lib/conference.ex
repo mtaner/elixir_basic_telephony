@@ -3,26 +3,66 @@ defmodule Conference do
 
   alias Commanded.Aggregate.Multi
 
-  def execute(%Conference{conference_key: nil, call_sid: nil, number: nil} = conference,
-    %CreateConference{conference_key: conference_key, call_sid: call_sid, number: number, username: username}) do
+  def execute(
+        %Conference{conference_key: nil, call_sid: nil, number: nil} = conference,
+        %CreateConference{
+          conference_key: conference_key,
+          call_sid: call_sid,
+          number: number,
+          username: username
+        }
+      ) do
     conference
     |> Multi.new()
     |> Multi.execute(&create_conference(&1, conference_key, number))
     |> Multi.execute(&request_consultant_leg(&1, username))
   end
 
-  def execute(%Conference{call_sid: nil} = conference, %UpdateLegStatus{conference_key: conference_key, call_sid: call_sid}) do
+  def execute(%Conference{call_sid: nil} = conference, %UpdateLegStatus{
+        conference_key: conference_key,
+        call_sid: call_sid,
+        status: "in-progress"
+      }) do
     conference
     |> Multi.new()
     |> Multi.execute(&connect_consultant_leg(&1, call_sid))
     |> Multi.execute(&request_customer_leg(&1))
   end
 
-  def execute(%Conference{} = conference, %UpdateLegStatus{conference_key: conference_key, call_sid: call_sid}) do
-      conference
-      |> Multi.new()
-      |> Multi.execute(&connect_customer_leg(&1, call_sid))
-      |> Multi.execute(&start_conference(&1))
+  def execute(%Conference{call_sid: nil} = conference, %UpdateLegStatus{
+        conference_key: conference_key,
+        call_sid: call_sid,
+        status: status
+      })
+      when status in ["failed", "busy", "no-answer"] do
+    conference
+    |> Multi.new()
+    |> Multi.execute(&fail_consultant_leg(&1))
+    |> Multi.execute(&fail_conference(&1))
+  end
+
+  def execute(%Conference{} = conference, %UpdateLegStatus{
+        conference_key: conference_key,
+        call_sid: call_sid,
+        status: "in-progress"
+      }) do
+    conference
+    |> Multi.new()
+    |> Multi.execute(&connect_customer_leg(&1, call_sid))
+    |> Multi.execute(&start_conference(&1))
+  end
+
+  def execute(%Conference{} = conference, %UpdateLegStatus{
+        conference_key: conference_key,
+        call_sid: call_sid,
+        status: status
+      })
+      when status in ["failed", "busy", "no-answer"] do
+    conference
+    |> Multi.new()
+    |> Multi.execute(&fail_customer_leg(&1))
+    |> Multi.execute(&hang_up(&1))
+    |> Multi.execute(&fail_conference(&1))
   end
 
   def execute(%Conference{} = conference, %EndConference{}) do
@@ -31,6 +71,18 @@ defmodule Conference do
 
   def execute(%Conference{} = conference, %HangUp{}) do
     hang_up(conference)
+  end
+
+  defp fail_consultant_leg(%Conference{conference_key: conference_key}) do
+    %ConsultantLegFailed{conference_key: conference_key}
+  end
+
+  defp fail_customer_leg(%Conference{conference_key: conference_key}) do
+    %CustomerLegFailed{conference_key: conference_key}
+  end
+
+  defp fail_conference(%Conference{conference_key: conference_key}) do
+    %ConferenceFailed{conference_key: conference_key}
   end
 
   defp hang_up(%Conference{call_sid: call_sid, conference_key: conference_key}) do
@@ -66,14 +118,14 @@ defmodule Conference do
   end
 
   def apply(%Conference{} = conference, %ConsultantLegConnected{call_sid: call_sid}) do
-    %Conference{conference | call_sid: call_sid }
+    %Conference{conference | call_sid: call_sid}
   end
 
-  def apply(%Conference{} = conference, %ConferenceCreated{conference_key: conference_key, number: number}) do
-    %Conference{conference |
-      conference_key: conference_key,
-      number: number
-    }
+  def apply(%Conference{} = conference, %ConferenceCreated{
+        conference_key: conference_key,
+        number: number
+      }) do
+    %Conference{conference | conference_key: conference_key, number: number}
   end
 
   def apply(%Conference{} = conference, _) do

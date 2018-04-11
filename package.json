@@ -1,0 +1,25 @@
+{
+  "name": "twilio_sandbox",
+  "version": "1.0.0",
+  "description": "A simple Twilio sandbox app",
+  "repository": "git@github.com:simplybusiness/twilio_sandbox.git",
+  "author": "Simply Business <tech@simplybusiness.co.uk>",
+  "private": true,
+  "scripts": {
+    "start": "webpack --mode development --watch"
+  },
+  "dependencies": {
+    "babel": "^6.23.0",
+    "babel-loader": "^7.1.4",
+    "babel-preset-react": "^6.24.1",
+    "react": "^16.3.1",
+    "react-dom": "^16.3.1",
+    "webpack": "^4.5.0",
+    "webpack-cli": "^2.0.13"
+  },
+  "babel": {
+    "presets": [
+      "react"
+    ]
+  }
+}

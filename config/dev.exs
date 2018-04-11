@@ -21,7 +21,7 @@ use Mix.Config
 # different ports.
 
 config :sandbox_twilio, TwilioSandbox.Endpoint,
-  http: [port: 4000],
+  http: [port: {:system, "PORT"}],
   debug_errors: true,
   code_reloader: true,
   check_origin: false,
@@ -53,8 +53,9 @@ config :sandbox_twilio, TwilioSandbox.Endpoint,
     ]
   ]
 
-config :ex_twilio, account_sid: "ACCOUNT_SID",
-                   auth_token: "AUTH_TOKEN"
+config :ex_twilio,
+  account_sid: "ACCOUNT_SID",
+  auth_token: "AUTH_TOKEN"
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :console, format: "[$level] $message\n"
